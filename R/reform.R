@@ -1,26 +1,35 @@
-reform <- function(x, ...) {
-  UseMethod("reform")
-}
-
-reform.refint <- function(x, newdata, ...) {
+#' Reference interval calibration via conFormal prediction (ReForm)
+#'
+#'
+#'
+#' @param x `refint` object, typically result of \link[ReForm]{refint}
+#' @param newdata calibration data used to fit ReForm
+#' @param ... other parameters passed internally to `predict`
+#'
+#' @return
+#' @export
+#'
+#' @seealso
+#' \link[ReForm]{plot.reformint} for assessing fit of reference interval in
+#' calibration set via diagnostic plots
+#'
+#' \link[ComBatFamily]{predict.reformint} for applying a ReFormed reference
+#' interval to new observations
+#'
+#' @examples
+#' # example for gamlss2
+#' library(gamlss2)
+#' fit <- gamlss2(Sepal.Length ~ Petal.Width + Species, data = iris[1:110,])
+#' ri <- refint(fit, 95)
+#' reformint <- reform(ri, newdata = iris[111:130,])
+reform <- function(x, newdata, ...) {
   if (any(!(x$terms %in% names(newdata)))) {stop("Terms missing from newdata")}
 
   alpha = 1 - x$pct/100
   nc <- nrow(newdata)
 
-  # get intervals using predict for model class
-  switch(
-    class(x$fit),
-    "gamlss2" = {
-      params = predict(x$fit, newdata = newdata, ...)
-      pred <- list(x$fit$family$quantile(alpha/2, par = params),
-                  x$fit$family$quantile(1-alpha/2, par = params))
-    },
-    "mqgam" = {
-      pred <- qgam::qdo(x$fit, c(alpha/2, 1-alpha/2), predict, ...)
-    })
-
   # calibrate using ReForm
+  pred <- x$get.ri(x$fit, alpha, newdata)
   res <- data.frame(lower = pred[[1]] - newdata[,x$terms[1]],
                     upper = newdata[,x$terms[1]] - pred[[2]])
   q_cut <- min(ceiling((1 - alpha/2)*(nc+1)), nc)
@@ -30,29 +39,30 @@ reform.refint <- function(x, newdata, ...) {
   out$nc <- nc
   out$res <- res
   out$cali <- q
+  out$cali.df <- newdata
   class(out) <- "reformint"
   out
 }
 
+#' @param x
+#'
+#' @param newdata
+#' @param ...
+#'
+#' @export
+#'
+#' @examples
+#' # example for gamlss2
+#' library(gamlss2)
+#' fit <- gamlss2(Sepal.Length ~ Petal.Width + Species, data = iris[1:110,])
+#' ri <- refint(fit, 95)
+#' reformint <- reform(ri, newdata = iris[111:130,])
+#' predict(reformint, newdata = iris[131:150,])
 predict.reformint <- function(x, newdata, ...) {
   if (any(!(x$terms %in% names(newdata)))) {stop("Terms missing from newdata")}
 
-  alpha = 1 - x$pct/100
-
-  # get intervals using predict for model class
-  switch(
-    class(x$fit),
-    "gamlss2" = {
-      params = predict(x$fit, newdata = newdata, ...)
-      out <- list(x$fit$family$quantile(alpha/2, par = params),
-                  x$fit$family$quantile(1-alpha/2, par = params))
-    },
-    "mqgam" = {
-      out <- qgam::qdo(x$fit, c(alpha/2, 1-alpha/2), predict, ...)
-    })
-  names(out) <- c("lower", "upper")
-
   # apply ReForm calibration
+  out <- x$get.ri(x$fit, 1 - x$pct/100, newdata)
   out$lower <- out$lower - x$cali[1]
   out$upper <- out$upper + x$cali[2]
 
@@ -61,6 +71,20 @@ predict.reformint <- function(x, newdata, ...) {
   out$below <- newdata[,x$terms[1]] > out[[2]]
 
   data.frame(out)
+}
+
+#' @param x
+#'
+#' @param var
+#' @param ...
+#'
+#' @export
+plot.reformint <- function(x, var, ...) {
+  plot(x$cali.df[,var], x$res$lower, xlab = var, ylab = "lower residual")
+
+  op <- par(ask=TRUE)
+  plot(x$cali.df[,var], x$res$upper, xlab = var, ylab = "upper residual")
+  par(op)
 }
 
 print.reformint <- function(x) {
