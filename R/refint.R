@@ -17,13 +17,31 @@ refint <- function(x, ...) {
 }
 
 #' @export
-refint.gamlss2 <- function(x, pct = 95, ...) {
-  fit <- x
+refint.gamlss <- function(fit, pct = 95, ...) {
+  # helper function to get refint from model
+  get.ri <- function(alpha, newdata, ...) {
+    params = list(
+      mu = predict(fit, newdata = newdata, what = "mu", type = "response", ...),
+      sigma = predict(fit, newdata = newdata, what = "sigma", type = "response", ...))
+    pred <- list(
+      do.call(get(paste("q", fit$family[1], sep = "")), c(list(alpha/2), params)),
+      do.call(get(paste("q", fit$family[1], sep = "")), c(list(1-alpha/2), params)))
+    names(pred) <- c("lower", "upper")
+    pred
+  }
 
+  out <- list(fit = fit, terms = as.character(attr(terms(fit), "variables"))[-1],
+              get.ri = get.ri, pct = pct)
+  class(out) <- "refint"
+  out
+}
+
+#' @export
+refint.gamlss2 <- function(x, pct = 95, ...) {
   # remove reference data
-  fit$model[] <- NA
-  fit$y[] <- NA
-  fit$x[] <- NA
+  x$model[] <- NA
+  x$y[] <- NA
+  x$x[] <- NA
 
   # helper function to get refint from model
   get.ri <- function(x, alpha, newdata, ...) {
@@ -34,7 +52,7 @@ refint.gamlss2 <- function(x, pct = 95, ...) {
     pred
   }
 
-  out <- list(fit = fit, terms = names(fit$model), get.ri = get.ri, pct = pct)
+  out <- list(fit = x, terms = names(x$model), get.ri = get.ri, pct = pct)
   class(out) <- "refint"
   out
 }
@@ -66,7 +84,7 @@ refint.mqgam <- function(x, pct = 95, ...) {
 predict.refint <- function(x, newdata, ...) {
   if (any(!(x$terms %in% names(newdata)))) {stop("Terms missing from newdata")}
 
-  out <- x$get.ri(x$fit, 1 - x$pct/100, newdata)
+  out <- x$get.ri(1 - x$pct/100, newdata)
   out[[x$terms[1]]] <-  newdata[,x$terms[1]]
   out$above <- newdata[,x$terms[1]] < out[[1]]
   out$below <- newdata[,x$terms[1]] > out[[2]]
@@ -75,6 +93,6 @@ predict.refint <- function(x, newdata, ...) {
 }
 
 print.refint <- function(x) {
-  cat(x$pct, "% reference interval using model of class ", class(x$fit),
+  cat(x$pct, "% reference interval using model of class ", class(x$fit)[1],
       sep = "")
 }
