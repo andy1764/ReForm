@@ -13,7 +13,7 @@
 #' \link[ReForm]{plot.reformint} for assessing fit of reference interval in
 #' calibration set via diagnostic plots
 #'
-#' \link[ComBatFamily]{predict.reformint} for applying a ReFormed reference
+#' \link[ReForm]{predict.reformint} for applying a ReFormed reference
 #' interval to new observations
 #'
 #' @examples
@@ -22,6 +22,7 @@
 #' fit <- gamlss2(Sepal.Length ~ Petal.Width + Species, data = iris[1:110,])
 #' ri <- refint(fit, 95)
 #' reformint <- reform(ri, newdata = iris[111:130,])
+#' predict(reformint, newdata = iris[131:150,])
 reform <- function(x, newdata, ...) {
   if (any(!(x$terms %in% names(newdata)))) {stop("Terms missing from newdata")}
 
@@ -50,14 +51,6 @@ reform <- function(x, newdata, ...) {
 #' @param ...
 #'
 #' @export
-#'
-#' @examples
-#' # example for gamlss2
-#' library(gamlss2)
-#' fit <- gamlss2(Sepal.Length ~ Petal.Width + Species, data = iris[1:110,])
-#' ri <- refint(fit, 95)
-#' reformint <- reform(ri, newdata = iris[111:130,])
-#' predict(reformint, newdata = iris[131:150,])
 predict.reformint <- function(x, newdata, ...) {
   if (any(!(x$terms %in% names(newdata)))) {stop("Terms missing from newdata")}
 

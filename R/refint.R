@@ -7,6 +7,11 @@
 #' @export
 #'
 #' @examples
+#' # example for gamlss2
+#' library(gamlss2)
+#' fit <- gamlss2(Sepal.Length ~ Petal.Width + Species, data = iris[1:110,])
+#' ri <- refint(fit, 95)
+#' predict(ri, newdata = iris[111:150,])
 refint <- function(x, ...) {
   UseMethod("refint")
 }
@@ -61,7 +66,7 @@ refint.mqgam <- function(x, pct = 95, ...) {
 predict.refint <- function(x, newdata, ...) {
   if (any(!(x$terms %in% names(newdata)))) {stop("Terms missing from newdata")}
 
-  out <- x$get.ri(x$fit, 1 - x$pct/100)
+  out <- x$get.ri(x$fit, 1 - x$pct/100, newdata)
   out[[x$terms[1]]] <-  newdata[,x$terms[1]]
   out$above <- newdata[,x$terms[1]] < out[[1]]
   out$below <- newdata[,x$terms[1]] > out[[2]]
