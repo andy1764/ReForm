@@ -7,6 +7,8 @@
 \method{predict}{refint}(object, newdata, ...)
 }
 \arguments{
+\item{object}{\code{refint} object obtained from \link[ReForm]{refint}}
+
 \item{newdata}{input variables used to get reference intervals}
 
 \item{...}{additional arguments passed to \link[stats]{predict}}

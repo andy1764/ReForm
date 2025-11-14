@@ -1,13 +1,13 @@
 Package: ReForm
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Reference interval calibration via conFormal prediction (ReForm)
 Version: 0.1.0
-Author: Who wrote it
-Maintainer: The package maintainer <yourself@somewhere.net>
-Description: More about what it does (maybe more than one line)
-    Use four spaces when indenting paragraphs within the Description.
-License: What license is it under?
+Author: Andrew A. Chen
+Maintainer: Andrew A. Chen <chenandr@musc.edu>
+Description: Implementation of ReForm, which calibrates reference intervals to a new sample.
+License: Artistic-2.0
 Encoding: UTF-8
-LazyData: true
+Imports: stats
+Suggests: quantreg, qgam, gamlss2
 RoxygenNote: 7.3.2
 Roxygen: list(markdown = TRUE)

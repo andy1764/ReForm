@@ -4,26 +4,31 @@
 \alias{reform}
 \title{Reference interval calibration via conFormal prediction (ReForm)}
 \usage{
-reform(x, caldata, ...)
+reform(object, caldata, ...)
 }
 \arguments{
-\item{x}{\code{refint} object obtained from \link[ReForm]{refint}}
+\item{object}{\code{refint} object obtained from \link[ReForm]{refint}}
 
 \item{caldata}{calibration data used to fit ReForm}
 
 \item{...}{additional arguments passed internally to \link[stats]{predict}}
 }
+\value{
+\code{reform} returns a list containing all elements of \code{object} (see \link[ReForm]{refint}) and:
+\item{cali}{lower and upper calibration constants used to adjust the interval}
+\item{cali.df}{\code{caldata} stored in the output}
+}
 \description{
 \code{reform} takes a fitted reference interval and calibrates to a new sample
 using split conformalized quantile regression (Romano, et al., 2019).
-\code{reform} requires a calibration set from the new sample (\code{newdata}). For
-more details on calibration set size and ReForm properties, refer to our
-preprint Chen et al., 2025.
+\code{reform} requires a calibration set \code{caldata} from the new sample. For more
+details on calibration set size and ReForm properties, refer to our preprint
+Chen et al., 2025.
 }
 \examples{
 # example for lm (not recommended)
 ri <- refint(
-  lm(Sepal.Length ~ Petal.Width + Species,
+  lm(Sepal.Length ~ Petal.Length + Species,
     data = iris[-(1:40),])
 )
 reformed_ri <- reform(ri, caldata = iris[1:30,])
@@ -33,9 +38,9 @@ predict(reformed_ri, newdata = iris[31:40,])
 if (require("quantreg")) {
   ri <- refint(
     rq(Sepal.Length ~ Petal.Length,
-      data = iris[1:50,], tau = 0.025),
+      data = iris[-(1:40),], tau = 0.025),
     rq(Sepal.Length ~ Petal.Length,
-      data = iris[1:50,], tau = 0.975)
+      data = iris[-(1:40),], tau = 0.975)
   )
   reformed_ri <- reform(ri, caldata = iris[1:30,])
   predict(reformed_ri, newdata = iris[31:40,])

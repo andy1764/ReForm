@@ -148,6 +148,7 @@ refint.qgam <- function(object, upper, ...) {
 #'
 #' Apply fitted reference interval from \link[ReForm]{refint} to new data
 #'
+#' @param object `refint` object obtained from \link[ReForm]{refint}
 #' @param newdata input variables used to get reference intervals
 #' @param ... additional arguments passed to \link[stats]{predict}
 #'
@@ -160,8 +161,8 @@ predict.refint <- function(object, newdata, ...) {
 
   out <- object$get.ri(newdata, ...)
   out[[object$terms[1]]] <-  newdata[,object$terms[1]]
-  out$above <- newdata[,object$terms[1]] < out[[1]]
-  out$below <- newdata[,object$terms[1]] > out[[2]]
+  out$below <- newdata[,object$terms[1]] < out$lower
+  out$above <- newdata[,object$terms[1]] > out$upper
 
   data.frame(out)
 }
