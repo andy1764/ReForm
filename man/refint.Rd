@@ -2,13 +2,84 @@
 % Please edit documentation in R/refint.R
 \name{refint}
 \alias{refint}
-\title{Title}
+\alias{refint.lm}
+\alias{refint.gamlss2}
+\alias{refint.rq}
+\alias{refint.qgam}
+\title{Constructing Reference Intervals}
 \usage{
-refint(x, ...)
+refint(object, ...)
+
+\method{refint}{lm}(object, pct = 95, ...)
+
+\method{refint}{gamlss2}(object, pct = 95, ...)
+
+\method{refint}{rq}(object, upper, ...)
+
+\method{refint}{qgam}(object, upper, ...)
 }
 \arguments{
-\item{...}{}
+\item{object}{a model object used to construct the reference interval}
+
+\item{...}{additional arguments passed internally to \link[stats]{predict}}
+
+\item{pct}{for distributional regression, the desired percentage}
+
+\item{upper}{for quantile regression, the upper quantile fit}
+}
+\value{
+\code{refint} returns a list containing:
+\item{fit}{original model fit for \link[stats]{lm} and \link[gamlss2]{gamlss2}}
+\item{fits}{lower and upper fits for \link[quantreg]{rq} and \link[qgam]{qgam}}
+\item{terms}{variables used in the original model fit}
+\item{get.ri}{function used to get reference interval from model fit(s)}
+\item{pct}{percentage reference interval (i.e. 95 refers to 95\% reference interval}
 }
 \description{
-Title
+\code{refint} is a generic function used to construct \code{pct}\% reference intervals
+from a model object. Currently supports both distributional regression models
+(\link[stats]{lm} and \link[gamlss2]{gamlss2}) and quantile regression models
+(\link[quantreg]{rq} and \link[qgam]{qgam}).
+}
+\examples{
+# example for lm (not recommended)
+ri <- refint(
+  lm(Sepal.Length ~ Petal.Width + Species,
+    data = iris[-(1:20),])
+)
+predict(ri, newdata = iris[1:20,])
+
+# example for quantreg::rq
+if (require("quantreg")) {
+  ri <- refint(
+    rq(Sepal.Length ~ Petal.Length + Species,
+      data = iris[-(1:20),], tau = 0.025),
+    rq(Sepal.Length ~ Petal.Length + Species,
+      data = iris[-(1:20),], tau = 0.975)
+  )
+  predict(ri, newdata = iris[1:20,])
+}
+
+# example for qgam
+if (require("quantreg")) {
+  ri <- refint(
+    qgam(Sepal.Length ~ s(Petal.Length) + Species,
+      data = iris[-(1:20),], qu = 0.025),
+    qgam(Sepal.Length ~ s(Petal.Length) + Species,
+      data = iris[-(1:20),], qu = 0.975)
+  )
+  predict(ri, newdata = iris[1:20,])
+}
+
+if (require("gamlss2")) {
+  ri <- refint(
+    gamlss2(Sepal.Length ~ s(Petal.Length) + Species |
+      s(Petal.Length) + Species, data = iris[-(1:20),],
+      family = BCT))
+  predict(ri, newdata = iris[1:20,])
+}
+}
+\seealso{
+\link[ReForm]{predict.refint} for applying reference intervals to new data
+\link[ReForm]{reform} for calibration to a new sample
 }

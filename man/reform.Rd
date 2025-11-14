@@ -4,29 +4,51 @@
 \alias{reform}
 \title{Reference interval calibration via conFormal prediction (ReForm)}
 \usage{
-reform(x, newdata, ...)
+reform(x, caldata, ...)
 }
 \arguments{
-\item{x}{\code{refint} object, typically result of \link[ReForm]{refint}}
+\item{x}{\code{refint} object obtained from \link[ReForm]{refint}}
 
-\item{newdata}{calibration data used to fit ReForm}
+\item{caldata}{calibration data used to fit ReForm}
 
-\item{...}{other parameters passed internally to \code{predict}}
+\item{...}{additional arguments passed internally to \link[stats]{predict}}
 }
 \description{
-Reference interval calibration via conFormal prediction (ReForm)
+\code{reform} takes a fitted reference interval and calibrates to a new sample
+using split conformalized quantile regression (Romano, et al., 2019).
+\code{reform} requires a calibration set from the new sample (\code{newdata}). For
+more details on calibration set size and ReForm properties, refer to our
+preprint Chen et al., 2025.
 }
 \examples{
-# example for gamlss2
-library(gamlss2)
-fit <- gamlss2(Sepal.Length ~ Petal.Width + Species, data = iris[1:110,])
-ri <- refint(fit, 95)
-reformint <- reform(ri, newdata = iris[111:130,])
+# example for lm (not recommended)
+ri <- refint(
+  lm(Sepal.Length ~ Petal.Width + Species,
+    data = iris[-(1:40),])
+)
+reformed_ri <- reform(ri, caldata = iris[1:30,])
+predict(reformed_ri, newdata = iris[31:40,])
+
+# example for quantreg::rq
+if (require("quantreg")) {
+  ri <- refint(
+    rq(Sepal.Length ~ Petal.Length,
+      data = iris[1:50,], tau = 0.025),
+    rq(Sepal.Length ~ Petal.Length,
+      data = iris[1:50,], tau = 0.975)
+  )
+  reformed_ri <- reform(ri, caldata = iris[1:30,])
+  predict(reformed_ri, newdata = iris[31:40,])
+}
+
+}
+\references{
+Romano, Y., Patterson, E., & Candes, E. (2019). Conformalized quantile regression. Advances in neural information processing systems, 32.
 }
 \seealso{
 \link[ReForm]{plot.reformint} for assessing fit of reference interval in
 calibration set via diagnostic plots
 
-\link[ComBatFamily]{predict.reformint} for applying a ReFormed reference
+\link[ReForm]{predict.reformint} for applying a ReFormed reference
 interval to new observations
 }
