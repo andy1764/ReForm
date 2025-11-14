@@ -26,10 +26,10 @@
 #' # example for lm (not recommended)
 #' ri <- refint(
 #'   lm(Sepal.Length ~ Petal.Length + Species,
-#'     data = iris[-(1:40),])
+#'     data = iris[-(1:45),]), pct = 90
 #' )
-#' reformed_ri <- reform(ri, caldata = iris[1:30,])
-#' predict(reformed_ri, newdata = iris[31:40,])
+#' reformed_ri <- reform(ri, caldata = iris[1:40,])
+#' predict(reformed_ri, newdata = iris[41:45,])
 #'
 #' plot(reformed_ri)
 #'
@@ -37,12 +37,12 @@
 #' if (require("quantreg")) {
 #'   ri <- refint(
 #'     rq(Sepal.Length ~ Petal.Length,
-#'       data = iris[-(1:40),], tau = 0.025),
+#'       data = iris[-(1:45),], tau = 0.05),
 #'     rq(Sepal.Length ~ Petal.Length,
-#'       data = iris[-(1:40),], tau = 0.975)
+#'       data = iris[-(1:45),], tau = 0.95)
 #'   )
-#'   reformed_ri <- reform(ri, caldata = iris[1:30,])
-#'   predict(reformed_ri, newdata = iris[31:40,])
+#'   reformed_ri <- reform(ri, caldata = iris[1:40,])
+#'   predict(reformed_ri, newdata = iris[41:45,])
 #'
 #'   plot(reformed_ri)
 #' }
@@ -50,7 +50,9 @@
 #' @references
 #' Romano, Y., Patterson, E., & Candes, E. (2019). Conformalized quantile regression. Advances in neural information processing systems, 32.
 reform <- function(object, caldata, ...) {
-  if (any(!(object$terms %in% names(caldata)))) {stop("Terms missing from caldata")}
+  if (any(!(object$terms %in% names(caldata)))) {
+    stop("Terms missing from caldata")
+  }
   alpha = 1 - object$pct/100
   nc <- nrow(caldata)
 
@@ -58,6 +60,9 @@ reform <- function(object, caldata, ...) {
   pred <- object$get.ri(caldata)
   res <- data.frame(lower = pred[[1]] - caldata[,object$terms[1]],
                     upper = caldata[,object$terms[1]] - pred[[2]])
+  if (ceiling((1 - alpha/2)*(nc+1)) > nc) {
+    warning("Calibration set size is inadequate, results may be suboptimal")
+  }
   q_cut <- min(ceiling((1 - alpha/2)*(nc+1)), nc)
   q <- apply(res, 2, function(x) sort(x)[q_cut])
 
@@ -85,24 +90,30 @@ reform <- function(object, caldata, ...) {
 #' # example for lm (not recommended)
 #' ri <- refint(
 #'   lm(Sepal.Length ~ Petal.Length + Species,
-#'     data = iris[-(1:40),])
+#'     data = iris[-(1:45),]), pct = 90
 #' )
-#' reformed_ri <- reform(ri, caldata = iris[1:30,])
-#' predict(reformed_ri, newdata = iris[31:40,])
+#' reformed_ri <- reform(ri, caldata = iris[1:40,])
+#' predict(reformed_ri, newdata = iris[41:45,])
+#'
+#' plot(reformed_ri)
 #'
 #' # example for quantreg::rq
 #' if (require("quantreg")) {
 #'   ri <- refint(
 #'     rq(Sepal.Length ~ Petal.Length,
-#'       data = iris[-(1:40),], tau = 0.025),
+#'       data = iris[-(1:45),], tau = 0.05),
 #'     rq(Sepal.Length ~ Petal.Length,
-#'       data = iris[-(1:40),], tau = 0.975)
+#'       data = iris[-(1:45),], tau = 0.95)
 #'   )
-#'   reformed_ri <- reform(ri, caldata = iris[1:30,])
-#'   predict(reformed_ri, newdata = iris[31:40,])
+#'   reformed_ri <- reform(ri, caldata = iris[1:40,])
+#'   predict(reformed_ri, newdata = iris[41:45,])
+#'
+#'   plot(reformed_ri)
 #' }
 predict.reformint <- function(object, newdata, ...) {
-  if (any(!(object$terms %in% names(newdata)))) {stop("Terms missing from newdata")}
+  if (any(!(object$terms %in% names(newdata)))) {
+    stop("Terms missing from newdata")
+  }
 
   # apply ReForm calibration
   out <- object$get.ri(newdata, ...)
@@ -134,10 +145,26 @@ predict.reformint <- function(object, newdata, ...) {
 #' # example for lm (not recommended)
 #' ri <- refint(
 #'   lm(Sepal.Length ~ Petal.Length + Species,
-#'     data = iris[-(1:40),])
+#'     data = iris[-(1:45),]), pct = 90
 #' )
-#' reformed_ri <- reform(ri, caldata = iris[1:30,])
+#' reformed_ri <- reform(ri, caldata = iris[1:40,])
+#' predict(reformed_ri, newdata = iris[41:45,])
+#'
 #' plot(reformed_ri)
+#'
+#' # example for quantreg::rq
+#' if (require("quantreg")) {
+#'   ri <- refint(
+#'     rq(Sepal.Length ~ Petal.Length,
+#'       data = iris[-(1:45),], tau = 0.05),
+#'     rq(Sepal.Length ~ Petal.Length,
+#'       data = iris[-(1:45),], tau = 0.95)
+#'   )
+#'   reformed_ri <- reform(ri, caldata = iris[1:40,])
+#'   predict(reformed_ri, newdata = iris[41:45,])
+#'
+#'   plot(reformed_ri)
+#' }
 plot.reformint <- function(x, var = NULL, ...) {
   if (is.null(var)) {
     var <- x$terms[2]
@@ -156,10 +183,12 @@ plot.reformint <- function(x, var = NULL, ...) {
 #' @export
 print.reformint <- function(x) {
   if (is.null(x$fits)) {
-    cat(x$pct, "% ReFormed reference interval using model of class ", class(x$fit),
-        ", calibrated on ", nrow(x$cali.df), " observations", sep = "")
+    cat(x$pct, "% ReFormed reference interval using model of class ",
+        class(x$fit), ", calibrated on ", nrow(x$cali.df), " observations\n",
+        sep = "")
   } else {
-    cat(x$pct, "% ReFormed reference interval using models of class ", class(x$fits[[1]]),
-        ", calibrated on ", nrow(x$cali.df), " observations", sep = "")
+    cat(x$pct, "% ReFormed reference interval using models of class ",
+        class(x$fits[[1]]), ", calibrated on ", nrow(x$cali.df),
+        " observations\n", sep = "")
   }
 }

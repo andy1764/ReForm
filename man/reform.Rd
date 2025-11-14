@@ -29,21 +29,25 @@ Chen et al., 2025.
 # example for lm (not recommended)
 ri <- refint(
   lm(Sepal.Length ~ Petal.Length + Species,
-    data = iris[-(1:40),])
+    data = iris[-(1:45),]), pct = 90
 )
-reformed_ri <- reform(ri, caldata = iris[1:30,])
-predict(reformed_ri, newdata = iris[31:40,])
+reformed_ri <- reform(ri, caldata = iris[1:40,])
+predict(reformed_ri, newdata = iris[41:45,])
+
+plot(reformed_ri)
 
 # example for quantreg::rq
 if (require("quantreg")) {
   ri <- refint(
     rq(Sepal.Length ~ Petal.Length,
-      data = iris[-(1:40),], tau = 0.025),
+      data = iris[-(1:45),], tau = 0.05),
     rq(Sepal.Length ~ Petal.Length,
-      data = iris[-(1:40),], tau = 0.975)
+      data = iris[-(1:45),], tau = 0.95)
   )
-  reformed_ri <- reform(ri, caldata = iris[1:30,])
-  predict(reformed_ri, newdata = iris[31:40,])
+  reformed_ri <- reform(ri, caldata = iris[1:40,])
+  predict(reformed_ri, newdata = iris[41:45,])
+
+  plot(reformed_ri)
 }
 
 }

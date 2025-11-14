@@ -1,21 +1,22 @@
 #' Constructing Reference Intervals
 #'
 #' `refint` is a generic function used to construct `pct`% reference intervals
-#' from a model object. Currently supports both distributional regression models
-#' (\link[stats]{lm} and \link[gamlss2]{gamlss2}) and quantile regression models
-#' (\link[quantreg]{rq} and \link[qgam]{qgam}).
+#' from a model object. Currently supports mean regression (\link[stats]{lm}),
+#' distributional regression (\link[gamlss2]{gamlss2}) and quantile regression
+#' (\link[quantreg]{rq} and \link[qgam]{qgam}). For quantile regression models,
+#' `pct` is obtained from the fitted quantile levels.
 #'
 #' @param object a model object used to construct the reference interval
 #' @param upper for quantile regression, the upper quantile fit
-#' @param pct for distributional regression, the desired percentage
+#' @param pct for mean/distributional regression, the desired percentage
 #' @param ... additional arguments passed internally to \link[stats]{predict}
 #'
 #' @returns `refint` returns a list containing:
-#' \item{fit}{original model fit for \link[stats]{lm} and \link[gamlss2]{gamlss2}}
-#' \item{fits}{lower and upper fits for \link[quantreg]{rq} and \link[qgam]{qgam}}
-#' \item{terms}{variables used in the original model fit}
+#' \item{fit}{model fit for mean/distributional regression}
+#' \item{fits}{lower and upper fits for quantile regression}
+#' \item{terms}{variables used in the model fit}
 #' \item{get.ri}{function used to get reference interval from model fit(s)}
-#' \item{pct}{percentage reference interval (i.e. 95 refers to 95% reference interval}
+#' \item{pct}{percentage reference interval (e.g. 95 refers to 95% reference interval}
 #'
 #' @import stats
 #' @export
@@ -45,7 +46,7 @@
 #' }
 #'
 #' # example for qgam
-#' if (require("quantreg")) {
+#' if (require("qgam")) {
 #'   ri <- refint(
 #'     qgam(Sepal.Length ~ s(Petal.Length) + Species,
 #'       data = iris[-(1:20),], qu = 0.025),
@@ -157,7 +158,9 @@ refint.qgam <- function(object, upper, ...) {
 #'
 #' @export
 predict.refint <- function(object, newdata, ...) {
-  if (any(!(object$terms %in% names(newdata)))) {stop("Terms missing from newdata")}
+  if (any(!(object$terms %in% names(newdata)))) {
+    stop("Terms missing from newdata")
+  }
 
   out <- object$get.ri(newdata, ...)
   out[[object$terms[1]]] <-  newdata[,object$terms[1]]
