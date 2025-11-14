@@ -25,7 +25,7 @@ This package is still a work-in-progress and will be continually supported and
 updated to include additional modeling options.
 
 ## 1. Installation
-The developmental version can be installed via `remotes` by running the following code
+The latest version can be installed via `remotes` by running the following code
 
 ```
 # install.packages("remotes")
@@ -43,17 +43,23 @@ A toy example for calibrating a 90% reference interval using the `iris` dataset
 is provided below:
 
 ```
-# construct 90% reference interval for Sepal.Length from `lm` fit
+library(quantreg)
+# construct 90% reference interval for Sepal.Length in iris virginica
 ri <- refint(
-  lm(Sepal.Length ~ Petal.Length + Species,
-    data = iris[-(1:45),]), pct = 90
+  rq(Sepal.Length ~ Sepal.Width,
+  data = iris[51:100,], tau = 0.05),
+  rq(Sepal.Length ~ Sepal.Width,
+  data = iris[51:100,], tau = 0.95)
 )
 
-# calibrate `ri` on 40 holdout observations using ReForm
-reformed_ri <- reform(ri, caldata = iris[1:40,])
+# direct application in iris setosa
+predict(ri, newdata = iris[1:10,])
 
-# apply to the remaining 5 observations
-predict(reformed_ri, newdata = iris[41:45,])
+# calibrate `ri` for iris setosa using 40 holdout observations
+reformed_ri <- reform(ri, caldata = iris[11:50,])
+
+# application of ReFormed reference interval
+predict(reformed_ri, newdata = iris[1:10,])
 ```
 
 For additional examples, please refer to the manual pages

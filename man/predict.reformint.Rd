@@ -23,25 +23,21 @@ Apply ReFormed reference interval from \link[ReForm]{reform} to new data
 \examples{
 # example for lm (not recommended)
 ri <- refint(
-  lm(Sepal.Length ~ Petal.Length + Species,
-    data = iris[-(1:45),]), pct = 90
+  lm(Sepal.Length ~ Sepal.Width,
+    data = iris[51:100,]), pct = 90
 )
-reformed_ri <- reform(ri, caldata = iris[1:40,])
-predict(reformed_ri, newdata = iris[41:45,])
-
-plot(reformed_ri)
+reformed_ri <- reform(ri, caldata = iris[11:50,])
+predict(reformed_ri, newdata = iris[1:10,])
 
 # example for quantreg::rq
 if (require("quantreg")) {
   ri <- refint(
-    rq(Sepal.Length ~ Petal.Length,
-      data = iris[-(1:45),], tau = 0.05),
-    rq(Sepal.Length ~ Petal.Length,
-      data = iris[-(1:45),], tau = 0.95)
+    rq(Sepal.Length ~ Sepal.Width,
+      data = iris[51:100,], tau = 0.05),
+    rq(Sepal.Length ~ Sepal.Width,
+      data = iris[51:100,], tau = 0.95)
   )
-  reformed_ri <- reform(ri, caldata = iris[1:40,])
-  predict(reformed_ri, newdata = iris[41:45,])
-
-  plot(reformed_ri)
+  reformed_ri <- reform(ri, caldata = iris[11:50,])
+  predict(reformed_ri, newdata = iris[1:10,])
 }
 }

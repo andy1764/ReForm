@@ -53,9 +53,9 @@ predict(ri, newdata = iris[1:20,])
 # example for quantreg::rq
 if (require("quantreg")) {
   ri <- refint(
-    rq(Sepal.Length ~ Petal.Length + Species,
+    rq(Sepal.Length ~ Sepal.Width + Species,
       data = iris[-(1:20),], tau = 0.025),
-    rq(Sepal.Length ~ Petal.Length + Species,
+    rq(Sepal.Length ~ Sepal.Width + Species,
       data = iris[-(1:20),], tau = 0.975)
   )
   predict(ri, newdata = iris[1:20,])
@@ -64,9 +64,9 @@ if (require("quantreg")) {
 # example for qgam
 if (require("qgam")) {
   ri <- refint(
-    qgam(Sepal.Length ~ s(Petal.Length) + Species,
+    qgam(Sepal.Length ~ s(Sepal.Width) + Species,
       data = iris[-(1:20),], qu = 0.025),
-    qgam(Sepal.Length ~ s(Petal.Length) + Species,
+    qgam(Sepal.Length ~ s(Sepal.Width) + Species,
       data = iris[-(1:20),], qu = 0.975)
   )
   predict(ri, newdata = iris[1:20,])
@@ -74,8 +74,8 @@ if (require("qgam")) {
 
 if (require("gamlss2")) {
   ri <- refint(
-    gamlss2(Sepal.Length ~ s(Petal.Length) + Species |
-      s(Petal.Length) + Species, data = iris[-(1:20),],
+    gamlss2(Sepal.Length ~ s(Sepal.Width) + Species |
+      s(Sepal.Width) + Species, data = iris[-(1:20),],
       family = BCT))
   predict(ri, newdata = iris[1:20,])
 }
