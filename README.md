@@ -74,4 +74,5 @@ Please cite the following papers when using ReForm:
 > Romano, Y., Patterson, E., & Candes, E. (2019). Conformalized quantile 
 regression. Advances in neural information processing systems, 32.
 >
-> Chen, A., ...
+> Chen, A. A., Seidlitz, J., Gardner, M., Bethlehem, R. A. I., Dorfschmidt, L., Kafadar, E., Consortium, L. B. C., Benitez, A., Jensen, J. H., Vandekar, S., Satterthwaite, T. D., & Alexander-Bloch, A. F. (2025). Calibration of MRI-based reference intervals to new samples (p. 2025.11.25.690453). bioRxiv. https://doi.org/10.1101/2025.11.25.690453
+

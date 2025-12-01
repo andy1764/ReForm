@@ -43,7 +43,6 @@ if (require("quantreg")) {
     rq(Sepal.Length ~ Sepal.Width,
       data = iris[51:100,], tau = 0.95)
   )
-  predict(ri, newdata = iris[1:10,])
   reformed_ri <- reform(ri, caldata = iris[11:50,])
   predict(reformed_ri, newdata = iris[1:10,])
 }
